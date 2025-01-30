@@ -1,0 +1,4 @@
+# Suojaa API-avaimet ja muut arkaluontoiset tiedostot
+.env
+client_secret.json
+token.json
