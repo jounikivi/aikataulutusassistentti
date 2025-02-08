@@ -14,7 +14,7 @@ def load_tasks():
       return json.load(file)
   return [] # Palautetaan tyhjä lista, jos tiedostoa ei ole
 
-def svae_tasks(tasks):
+def save_tasks(tasks):
   """
     Tallentaa tehtävät JSON-tiedostoon.
   """
@@ -28,32 +28,29 @@ def add_task(tasks, task):
   print("\nLisää uusi tehtävä")
   
   # Pyydetään käyttäjältä tehtävän tiedot
-  titlte = input("Otsikko: ")
-  deadline = input("Määräpäivä (yyyy-mm-dd): ")
+  title = input("Tehtävän otsikko: ")
+  deadline = input("Deadline (YYYY-MM-DD HH:MM): ")
   
-  #Tarkistetaan, että tärkeys on välillä 1–5
+  # Tarkistetaan, että tärkeys on vielä 1–5
+  # Tarkistetaan, että tärkeys on välillä 1–5
   while True:
     try:
-      priority = int(input("Tärkeys (1-5): "))
+      priority = int(input("Tärkeysaste (1-5, jossa 5 on korkein): "))
       if 1 <= priority <= 5:
         break
       else:
-        print("Tärkeys on oltava välillä 1–5.")
-
-    #Tarkistetaan, että tärkeys on välillä 1–5
-    
-    while True:
-      try:
-        duration = int(input("Kesto (minuutteina): "))
-        break
-      except ValueError:
-        print("Syötä numero.")
-        
-        # Luodaan tehtävä sanakirjana
-    task = {
-      "title": title,
-      "deadline": deadline,
-      "priority": priority,
-      "duration": duration
-    }
-    tasks.append(task)
+        print("⚠️ Anna numero väliltä 1–5.")
+    except ValueError:
+      print("⚠️ Syötä numero väliltä 1–5.")
+  
+  # Tarkistetaan, että kesto on kokonaisluku
+  while True:
+    try:
+      duration = int(input("Arvioitu kesto (minuutteina): "))
+      break
+    except ValueError:
+      print("Virheellinen syöte. Yritä uudelleen.")
+  
+  
+  
+  
