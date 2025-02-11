@@ -58,6 +58,10 @@ def add_tasks_to_calendar():
             deadline = task["deadline"]
             duration = int(task["duration"])  # Muutetaan kesto minuuteiksi
 
+            # Jos käyttäjä on syöttänyt vain päivämäärän ilman kellonaikaa, lisätään oletuskellonaika (klo 12:00)
+            if len(deadline) == 10:  # "YYYY-MM-DD" on 10 merkkiä pitkä
+                deadline += " 12:00"  # Lisätään oletuskellonaika
+
             # Muunnetaan deadline oikeaan datetime-muotoon
             start_time = datetime.datetime.strptime(deadline, "%Y-%m-%d %H:%M")
             end_time = start_time + datetime.timedelta(minutes=duration)
