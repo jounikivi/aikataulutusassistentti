@@ -60,3 +60,6 @@ def delete_old_events():
 
 if __name__ == "__main__":
     delete_old_events()
+
+# Käynnistä tämä skripti ajamalla se komentorivillä:
+# python google_calendar_add_tasks.py
