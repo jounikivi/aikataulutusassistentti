@@ -7,12 +7,19 @@ TASKS_FILE = "tasks.json"
 def load_tasks():
     """
     Lataa tehtävät JSON-tiedostosta.
-    Jos tiedostoa ei ole, palauttaa tyhjän listan.
+    Jos tiedosto on tyhjä tai virheellinen, palauttaa tyhjän listan.
     """
     if os.path.exists(TASKS_FILE):
-        with open(TASKS_FILE, "r", encoding="utf-8") as file:
-            return json.load(file)
-    return []  # Palautetaan tyhjä lista, jos tiedostoa ei ole
+        try:
+            with open(TASKS_FILE, "r", encoding="utf-8") as file:
+                data = file.read().strip()
+                if not data:
+                    return []
+                return json.loads(data)
+        except (json.JSONDecodeError, ValueError):
+            print("⚠️ Virhe `tasks.json` -tiedoston lukemisessa. Luodaan uusi tiedosto.")
+            return []
+    return []
 
 def save_tasks(tasks):
     """
@@ -29,8 +36,12 @@ def add_task():
 
     # Käyttäjän syötteet
     title = input("Tehtävän otsikko: ")
-    deadline = input("Deadline (YYYY-MM-DD HH:MM): ")
-    
+    deadline = input("Deadline (YYYY-MM-DD HH:MM): ").strip()
+
+    # Jos käyttäjä ei syötä kellonaikaa, lisätään oletus (klo 12:00)
+    if len(deadline) == 10:
+        deadline += " 12:00"
+
     # Tarkistetaan, että tärkeys on välillä 1–5
     while True:
         try:
@@ -55,7 +66,8 @@ def add_task():
         "title": title,
         "deadline": deadline,
         "priority": priority,
-        "duration": duration
+        "duration": duration,
+        "status": "pending"  # Oletuksena tehtävä on kesken
     }
 
     # Ladataan olemassa olevat tehtävät
@@ -78,7 +90,28 @@ def list_tasks():
     
     print("\n📋 Tallennetut tehtävät:\n")
     for index, task in enumerate(tasks, start=1):
-        print(f"{index}. {task['title']} (Deadline: {task['deadline']}, Tärkeys: {task['priority']}, Kesto: {task['duration']} min)")
+        print(f"{index}. {task['title']} (Deadline: {task['deadline']}, Tärkeys: {task['priority']}, Kesto: {task['duration']} min, Tila: {task['status']})")
+
+def delete_task():
+    """
+    Poistaa käyttäjän valitseman tehtävän.
+    """
+    tasks = load_tasks()
+    if not tasks:
+        print("\n📭 Ei tehtäviä poistettavaksi.")
+        return
+
+    list_tasks()
+    try:
+        task_num = int(input("\nValitse poistettava tehtävän numero: ")) - 1
+        if 0 <= task_num < len(tasks):
+            removed_task = tasks.pop(task_num)
+            save_tasks(tasks)
+            print(f"\n🗑️ Tehtävä poistettu: {removed_task['title']}")
+        else:
+            print("⚠️ Virheellinen valinta.")
+    except ValueError:
+        print("⚠️ Anna kelvollinen numero.")
 
 def main():
     """
@@ -88,15 +121,18 @@ def main():
         print("\n📌 TEHTÄVÄHALLINTA")
         print("1️⃣ Lisää uusi tehtävä")
         print("2️⃣ Näytä kaikki tehtävät")
-        print("3️⃣ Poistu")
+        print("3️⃣ Poista tehtävä")
+        print("4️⃣ Poistu")
         
-        choice = input("\nValitse toiminto (1-3): ")
+        choice = input("\nValitse toiminto (1-4): ")
 
         if choice == "1":
             add_task()
         elif choice == "2":
             list_tasks()
         elif choice == "3":
+            delete_task()
+        elif choice == "4":
             print("\n👋 Ohjelma suljetaan. Kiitos!")
             break
         else:
@@ -104,5 +140,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
-# Komentorivi: python task_manager.py
