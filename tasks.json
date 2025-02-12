@@ -17,5 +17,12 @@
         "priority": 5,
         "duration": 4,
         "status": "pending"
+    },
+    {
+        "title": "tapahtuma1",
+        "deadline": "2025-02-28 15:00",
+        "priority": 2,
+        "duration": 20,
+        "status": "pending"
     }
 ]
