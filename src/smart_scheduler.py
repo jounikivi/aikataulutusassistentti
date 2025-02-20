@@ -31,6 +31,17 @@ def train_model(tasks):
     model.fit(df[["hour"]], df["minute"])  # Opetetaan malli ennustamaan minuutit kellonajasta
     return model
 
+def suggest_schedule():
+    """Suosittelee parasta aikaa uudelle tehtävälle käyttäjän datan perusteella"""
+    tasks = load_tasks()
+    model = train_model(tasks)
+
+    if model is None:
+        return "12:00"  # Oletusaika, jos dataa ei ole tarpeeksi
+
+    predicted_hour = int(model.predict(np.array([[12]]))[0])  # Ennustetaan klo 12 perustuen dataan
+    return f"{predicted_hour:02d}:00"  # Varmistetaan oikea formaatti HH:MM
+
 def suggest_reminder():
     """Suosittelee muistutusaikaa perustuen käyttäjän tehtäväkäyttäytymiseen"""
     tasks = load_tasks()
