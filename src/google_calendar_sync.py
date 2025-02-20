@@ -20,7 +20,7 @@ def save_tasks(tasks):
         json.dump(tasks, file, indent=4, ensure_ascii=False)
 
 def add_task_to_calendar(service, task):
-    """Lisää yksittäisen tehtävän Google Kalenteriin"""
+    """Lisää yksittäisen tehtävän Google Kalenteriin AI:n suosittelemalla ajalla"""
     title = task["title"]
     deadline = task["deadline"]
     
@@ -46,7 +46,7 @@ def add_task_to_calendar(service, task):
         return None
 
 def sync_tasks_to_calendar():
-    """Synkronoi tehtävät Google Kalenteriin"""
+    """Synkronoi tehtävät Google Kalenteriin AI:n suosittelemalla ajalla"""
     print("🔄 Synkronoidaan tehtävät Google Kalenteriin...")
     creds = authenticate_google()
     service = build("calendar", "v3", credentials=creds)
@@ -69,4 +69,3 @@ def sync_tasks_to_calendar():
 
 if __name__ == "__main__":
     sync_tasks_to_calendar()
-    print("✅ Tehtävät synkronoitu Google Kalenteriin.")
