@@ -5,7 +5,7 @@ from smart_scheduler import suggest_schedule
 TASKS_FILE = "tasks.json"
 
 def load_tasks():
-    """Lataa tehtävät tiedostosta ja lisää puuttuva status-kenttä."""
+    """Lataa tehtävät tiedostosta ja lisää puuttuvan status-kentän."""
     if os.path.exists(TASKS_FILE):
         try:
             with open(TASKS_FILE, "r", encoding="utf-8") as file:
@@ -19,9 +19,23 @@ def load_tasks():
     return []
 
 def save_tasks(tasks):
-    """Tallentaa tehtävät tiedostoon."""
+    """Tallentaa tehtävät tiedostoon JSON-muodossa."""
     with open(TASKS_FILE, "w", encoding="utf-8") as file:
         json.dump(tasks, file, indent=4, ensure_ascii=False)
+
+def format_ai_suggestion(suggestion):
+    """
+    Varmistaa, että tekoälyn suosittelema kellonaika on oikeassa muodossa.
+    AI antaa arvon esim. 'Suositeltu aika: 14:00', joten otamme tunnin talteen.
+    Jos ennuste ei ole kelvollinen, käytetään oletusaikaa '12:00'.
+    """
+    try:
+        hour = int(suggestion.split(":")[1].strip())  # Poimitaan ennustettu tunti
+        if 0 <= hour <= 23:
+            return f"{hour:02d}:00"  # Muotoillaan kaksinumeroiseksi muodoksi HH:00
+    except ValueError:
+        pass  # Jos ennustus ei ole kelvollinen, käytetään oletusaikaa
+    return "12:00"  # Oletusaika, jos AI:n ennustus epäonnistuu
 
 def add_task():
     """Lisää uusi tehtävä ja käyttää tekoälyä suosittelemaan ajankohtaa."""
@@ -29,12 +43,13 @@ def add_task():
     
     # AI ehdottaa ajankohtaa
     ai_suggestion = suggest_schedule()
-    print(f"Tekoälyn suositus ajankohdaksi: {ai_suggestion}")
+    formatted_time = format_ai_suggestion(ai_suggestion)
+    print(f"Tekoälyn suositus ajankohdaksi: {formatted_time}")
     
     # Käyttäjä voi joko hyväksyä suosituksen tai syöttää oman ajan
     deadline = input(f"Deadline (YYYY-MM-DD HH:MM) [Paina Enter hyväksyäksesi AI-suosituksen]: ")
     if deadline.strip() == "":
-        deadline = f"2025-02-28 {ai_suggestion.split(':')[1]}:00"  # Käyttää AI:n suositusta
+        deadline = f"2025-02-28 {formatted_time}"  # Käyttää AI:n suositusta
 
     priority = input("Tärkeysaste (1-5): ")
 
