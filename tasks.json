@@ -6,9 +6,15 @@
         "status": "completed"
     },
     {
-        "title": "TESTItehtävä1",
-        "deadline": "2025-02-28 00.:00",
-        "priority": "5",
-        "status": "pending"
+        "title": "kdljdslkjfs",
+        "deadline": "2025-02-28 12:00",
+        "priority": "3",
+        "status": "completed"
+    },
+    {
+        "title": "TESTITESTI",
+        "deadline": "2025-02-28 12:00",
+        "priority": "2",
+        "status": "completed"
     }
 ]
