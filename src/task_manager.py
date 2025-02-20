@@ -24,17 +24,14 @@ def save_tasks(tasks):
         json.dump(tasks, file, indent=4, ensure_ascii=False)
 
 def format_ai_suggestion(suggestion):
-    """
-    Varmistaa, että tekoälyn suosittelema kellonaika on oikeassa muodossa.
-    AI antaa arvon esim. 'Suositeltu aika: 14:00', joten otamme tunnin talteen.
-    Jos ennuste ei ole kelvollinen, käytetään oletusaikaa '12:00'.
-    """
+    """Varmistaa, että AI:n suosittelema kellonaika on oikeassa muodossa."""
     try:
-        hour = int(suggestion.split(":")[1].strip())  # Poimitaan ennustettu tunti
+        parts = suggestion.split(":")
+        hour = int(parts[1].strip().replace(".", "").replace(",", ""))  # Poistetaan virheelliset merkit
         if 0 <= hour <= 23:
             return f"{hour:02d}:00"  # Muotoillaan kaksinumeroiseksi muodoksi HH:00
-    except ValueError:
-        pass  # Jos ennustus ei ole kelvollinen, käytetään oletusaikaa
+    except (ValueError, IndexError):
+        pass
     return "12:00"  # Oletusaika, jos AI:n ennustus epäonnistuu
 
 def add_task():
