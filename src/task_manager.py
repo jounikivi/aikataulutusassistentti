@@ -7,8 +7,14 @@ def get_user_task_file():
     """Palauttaa kirjautuneen käyttäjän tehtävätiedoston nimen"""
     if os.path.exists("token.json"):
         with open("token.json", "r") as token:
-            user_email = json.load(token).get("email", "default_user")
-            return TASKS_FILE_TEMPLATE.format(user_email.replace("@", "_").replace(".", "_"))
+            try:
+                token_data = json.load(token)
+                if isinstance(token_data, str):  # Jos JSON on string-muodossa, ladataan se uudelleen
+                    token_data = json.loads(token_data)
+                user_email = token_data.get("email", "default_user")
+                return TASKS_FILE_TEMPLATE.format(user_email.replace("@", "_").replace(".", "_"))
+            except json.JSONDecodeError:
+                return None
     return None
 
 def load_tasks():

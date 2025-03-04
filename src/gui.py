@@ -98,19 +98,72 @@ class TaskManagerGUI:
             self.tree.insert("", "end", values=(task["title"], task["deadline"], task["priority"]))
 
     def add_task(self):
-        """Lisää tehtävän (toiminnallisuus lisätään myöhemmin)"""
-        messagebox.showinfo("Lisää tehtävä", "Tämä ominaisuus lisätään myöhemmin!")
+        """Lisää tehtävän"""
+        new_task_window = tk.Toplevel(self.root)
+        new_task_window.title("Lisää tehtävä")
+
+        tk.Label(new_task_window, text="Tehtävän nimi:").grid(row=0, column=0)
+        title_entry = tk.Entry(new_task_window)
+        title_entry.grid(row=0, column=1)
+
+        tk.Label(new_task_window, text="Deadline (YYYY-MM-DD HH:MM):").grid(row=1, column=0)
+        deadline_entry = tk.Entry(new_task_window)
+        deadline_entry.grid(row=1, column=1)
+
+        tk.Label(new_task_window, text="Tärkeysaste (1-5):").grid(row=2, column=0)
+        priority_entry = tk.Entry(new_task_window)
+        priority_entry.grid(row=2, column=1)
+
+        def save_new_task():
+            title = title_entry.get()
+            deadline = deadline_entry.get()
+            priority = priority_entry.get()
+
+            if title and deadline and priority:
+                tasks = load_tasks()
+                tasks.append({"title": title, "deadline": deadline, "priority": priority, "status": "pending"})
+                save_tasks(tasks)
+                self.load_task_data()
+                new_task_window.destroy()
+            else:
+                messagebox.showerror("Virhe", "Täytä kaikki kentät!")
+
+        tk.Button(new_task_window, text="Tallenna", command=save_new_task).grid(row=3, column=1)
 
     def edit_task(self):
-        """Muokkaa tehtävää (toiminnallisuus lisätään myöhemmin)"""
-        messagebox.showinfo("Muokkaa tehtävää", "Tämä ominaisuus lisätään myöhemmin!")
+        """Muokkaa tehtävää"""
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showerror("Virhe", "Valitse muokattava tehtävä!")
+            return
+
+        item_values = self.tree.item(selected_item, "values")
+        tasks = load_tasks()
+
+        for task in tasks:
+            if task["title"] == item_values[0]:
+                task["title"] = "MUOKATTU: " + task["title"]
+                save_tasks(tasks)
+                self.load_task_data()
+                messagebox.showinfo("Muokkaa tehtävää", "Tehtävää muokattu onnistuneesti!")
+                return
 
     def delete_task(self):
-        """Poistaa tehtävän (toiminnallisuus lisätään myöhemmin)"""
-        messagebox.showinfo("Poista tehtävä", "Tämä ominaisuus lisätään myöhemmin!")
+        """Poistaa tehtävän"""
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showerror("Virhe", "Valitse poistettava tehtävä!")
+            return
+
+        item_values = self.tree.item(selected_item, "values")
+        tasks = load_tasks()
+        tasks = [task for task in tasks if task["title"] != item_values[0]]
+        save_tasks(tasks)
+        self.load_task_data()
+        messagebox.showinfo("Poista tehtävä", "Tehtävä poistettu onnistuneesti!")
 
     def sync_google(self):
-        """Synkronoi tehtävät Google Kalenteriin, jos käyttäjä on kirjautunut"""
+        """Synkronoi tehtävät Google Kalenteriin"""
         if os.path.exists("token.json"):
             sync_tasks_to_calendar()
             messagebox.showinfo("Synkronointi", "Tehtävät synkronoitu Google Kalenteriin onnistuneesti!")
