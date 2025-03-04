@@ -1,31 +1,32 @@
-import os
-from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
-from dotenv import load_dotenv
+import os
+import json
 
-# Ladataan API-avaimet .env-tiedostosta
-load_dotenv()
+TOKEN_FILE = "token.json"
 
-SCOPES = ['https://www.googleapis.com/auth/calendar']
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 def authenticate_google():
-    """Autentikoi käyttäjän Google Calendar API:lle ja palauttaa käyttöoikeustunnisteet."""
+    """Autentikoi käyttäjä ja tallentaa Google-tunnukset."""
     creds = None
 
-    # Tarkistetaan, onko token.json jo olemassa
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    if os.path.exists(TOKEN_FILE):
+        with open(TOKEN_FILE, "r") as token:
+            creds = json.load(token)
 
-    # Jos kirjautumista ei ole tehty, avataan selain
-    if not creds or not creds.valid:
+    if not creds:
         flow = InstalledAppFlow.from_client_secrets_file("client_secret.json", SCOPES)
-        creds = flow.run_local_server(port=0)  # Tämä avaa selaimen
-        with open("token.json", "w") as token:
-            token.write(creds.to_json())
+        creds = flow.run_local_server(port=0)
 
-    print("✅ Google API -autentikointi onnistui!")
+        with open(TOKEN_FILE, "w") as token:
+            json.dump(creds.to_json(), token)
+
     return creds
 
-# Testataan autentikointi
-if __name__ == "__main__":
-    authenticate_google()
+def logout_google():
+    """Poistaa kirjautumistiedot ja kirjaa käyttäjän ulos."""
+    if os.path.exists(TOKEN_FILE):
+        os.remove(TOKEN_FILE)
+        print("✅ Käyttäjä kirjattu ulos!")
+    else:
+        print("⚠️ Käyttäjä ei ollut kirjautunut sisään.")
