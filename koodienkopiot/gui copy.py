@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 from google_calendar_sync import sync_tasks_to_calendar
 from google_auth import authenticate_google, logout_google
 from task_manager import load_tasks, save_tasks
+from smart_scheduler import suggest_schedule
 import os
 
 class TaskManagerGUI:
@@ -12,7 +13,7 @@ class TaskManagerGUI:
         self.root.geometry("650x450")
 
         # Käyttäjätiedot
-        self.user_label = tk.Label(root, text="⚠️ Ei kirjautunut sisään", fg="red")
+        self.user_label = tk.Label(root, text="Ei kirjautunut sisään")
         self.user_label.pack()
 
         # Kirjautumis- ja uloskirjautumispainikkeet
@@ -23,27 +24,25 @@ class TaskManagerGUI:
         tk.Button(btn_frame_top, text="Kirjaudu ulos", command=self.logout).grid(row=0, column=1, padx=5)
 
         # Tehtävälista
-        self.tree = ttk.Treeview(root, columns=("Title", "Deadline", "Priority"), show="headings")
+        self.tree = ttk.Treeview(root, columns=("Title", "Deadline", "Priority", "AI Time"), show="headings")
         self.tree.heading("Title", text="Tehtävän nimi")
         self.tree.heading("Deadline", text="Deadline")
         self.tree.heading("Priority", text="Tärkeys")
+        self.tree.heading("AI Time", text="AI-ajankohta")
         self.tree.pack(pady=10)
 
         # Painikkeet tehtävien hallintaan
-        self.btn_frame = tk.Frame(root)
-        self.btn_frame.pack(pady=5)
+        btn_frame = tk.Frame(root)
+        btn_frame.pack(pady=5)
 
-        self.add_task_btn = tk.Button(self.btn_frame, text="Lisää tehtävä", command=self.add_task, state=tk.DISABLED)
-        self.add_task_btn.grid(row=0, column=0, padx=5)
+        tk.Button(btn_frame, text="Lisää tehtävä", command=self.add_task).grid(row=0, column=0, padx=5)
+        tk.Button(btn_frame, text="Muokkaa tehtävää", command=self.edit_task).grid(row=0, column=1, padx=5)
+        tk.Button(btn_frame, text="Poista tehtävä", command=self.delete_task).grid(row=0, column=2, padx=5)
+        tk.Button(btn_frame, text="Synkronoi Googleen", command=self.sync_google).grid(row=0, column=3, padx=5)
 
-        self.edit_task_btn = tk.Button(self.btn_frame, text="Muokkaa tehtävää", command=self.edit_task, state=tk.DISABLED)
-        self.edit_task_btn.grid(row=0, column=1, padx=5)
-
-        self.delete_task_btn = tk.Button(self.btn_frame, text="Poista tehtävä", command=self.delete_task, state=tk.DISABLED)
-        self.delete_task_btn.grid(row=0, column=2, padx=5)
-
-        self.sync_google_btn = tk.Button(self.btn_frame, text="Synkronoi Googleen", command=self.sync_google, state=tk.DISABLED)
-        self.sync_google_btn.grid(row=0, column=3, padx=5)
+        # AI-ajankohta
+        self.ai_suggestion_label = tk.Label(root, text=f"Tekoäly ehdottaa seuraavaa ajankohtaa uusille tehtäville: {suggest_schedule()}")
+        self.ai_suggestion_label.pack(pady=10)
 
         self.load_task_data()
         self.check_login_status()
@@ -51,32 +50,9 @@ class TaskManagerGUI:
     def check_login_status(self):
         """Tarkistaa, onko käyttäjä kirjautunut sisään"""
         if os.path.exists("token.json"):
-            self.user_label.config(text="✅ Kirjautunut sisään", fg="green")
-            self.enable_task_buttons()
-            self.load_task_data()
+            self.user_label.config(text="✅ Kirjautunut sisään")
         else:
-            self.user_label.config(text="⚠️ Ei kirjautunut sisään", fg="red")
-            self.disable_task_buttons()
-            self.clear_task_list()
-
-    def enable_task_buttons(self):
-        """Aktivoi tehtävien hallintapainikkeet kirjautumisen jälkeen"""
-        self.add_task_btn.config(state=tk.NORMAL)
-        self.edit_task_btn.config(state=tk.NORMAL)
-        self.delete_task_btn.config(state=tk.NORMAL)
-        self.sync_google_btn.config(state=tk.NORMAL)
-
-    def disable_task_buttons(self):
-        """Poistaa käytöstä tehtävien hallintapainikkeet ennen kirjautumista"""
-        self.add_task_btn.config(state=tk.DISABLED)
-        self.edit_task_btn.config(state=tk.DISABLED)
-        self.delete_task_btn.config(state=tk.DISABLED)
-        self.sync_google_btn.config(state=tk.DISABLED)
-
-    def clear_task_list(self):
-        """Tyhjentää tehtävälistan käyttöliittymästä"""
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+            self.user_label.config(text="⚠️ Ei kirjautunut sisään")
 
     def login(self):
         """Käyttäjä kirjautuu sisään Google-tilillä"""
@@ -91,22 +67,25 @@ class TaskManagerGUI:
         messagebox.showinfo("Uloskirjautuminen", "Olet kirjautunut ulos!")
 
     def load_task_data(self):
-        """Lataa tehtävät ja näyttää ne käyttöliittymässä vain kirjautuneelle käyttäjälle"""
-        self.clear_task_list()
+        """Lataa tehtävät ja näyttää ne käyttöliittymässä"""
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
         tasks = load_tasks()
         for task in tasks:
-            self.tree.insert("", "end", values=(task["title"], task["deadline"], task["priority"]))
+            ai_time = suggest_schedule()
+            self.tree.insert("", "end", values=(task["title"], task["deadline"], task["priority"], ai_time))
 
     def add_task(self):
-        """Lisää tehtävän (toiminnallisuus lisätään myöhemmin)"""
+        """Lisää uusi tehtävä"""
         messagebox.showinfo("Lisää tehtävä", "Tämä ominaisuus lisätään myöhemmin!")
 
     def edit_task(self):
-        """Muokkaa tehtävää (toiminnallisuus lisätään myöhemmin)"""
+        """Muokkaa valittua tehtävää"""
         messagebox.showinfo("Muokkaa tehtävää", "Tämä ominaisuus lisätään myöhemmin!")
 
     def delete_task(self):
-        """Poistaa tehtävän (toiminnallisuus lisätään myöhemmin)"""
+        """Poistaa valitun tehtävän"""
         messagebox.showinfo("Poista tehtävä", "Tämä ominaisuus lisätään myöhemmin!")
 
     def sync_google(self):
