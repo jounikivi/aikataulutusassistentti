@@ -10,20 +10,20 @@ class TaskManagerGUI:
         self.root = root
         self.root.title("📅 Älykäs Aikataulutusassistentti")
         self.root.geometry("750x450")
-        self.root.configure(bg="#f0f0f0")  
+        self.root.configure(bg="#f0f0f0")
 
-        # Otsikko (Kirjautumistila)
+        # Otsikko ja kirjautumistila
         self.user_label = ttk.Label(root, text="⚠️ Ei kirjautunut sisään", foreground="red", font=("Arial", 12, "bold"))
         self.user_label.pack(pady=5)
 
-        # **Kirjautumis- ja uloskirjautumisnapit**
-        self.login_frame = ttk.Frame(root)
-        self.login_frame.pack(pady=5)
+        # Kirjautumis- ja uloskirjautumispainikkeet
+        btn_frame_top = ttk.Frame(root)
+        btn_frame_top.pack(pady=5)
 
-        self.login_btn = ttk.Button(self.login_frame, text="🔑 Kirjaudu sisään Googlella", command=self.login)
+        self.login_btn = ttk.Button(btn_frame_top, text="🔑 Kirjaudu sisään Googlella", command=self.login)
         self.login_btn.grid(row=0, column=0, padx=5)
 
-        self.logout_btn = ttk.Button(self.login_frame, text="🚪 Kirjaudu ulos", command=self.logout)
+        self.logout_btn = ttk.Button(btn_frame_top, text="🚪 Kirjaudu ulos", command=self.logout)
         self.logout_btn.grid(row=0, column=1, padx=5)
 
         # Tehtävälista
@@ -32,7 +32,6 @@ class TaskManagerGUI:
         self.tree.heading("Deadline", text="Deadline", anchor="center")
         self.tree.heading("Priority", text="Tärkeys", anchor="center")
 
-        # Keskitetään sarakkeet ja lisätään leveydet
         self.tree.column("Title", anchor="w", width=250)
         self.tree.column("Deadline", anchor="center", width=120)
         self.tree.column("Priority", anchor="center", width=70)
@@ -58,19 +57,15 @@ class TaskManagerGUI:
         self.check_login_status()
 
     def check_login_status(self):
-        """Tarkistaa, onko käyttäjä kirjautunut sisään ja näyttää oikeat napit"""
+        """Tarkistaa, onko käyttäjä kirjautunut sisään"""
         if os.path.exists("token.json"):
             self.user_label.config(text="✅ Kirjautunut sisään", foreground="green")
             self.enable_task_buttons()
             self.load_task_data()
-            self.login_btn.grid_remove()  # Piilotetaan "Kirjaudu sisään" -nappi
-            self.logout_btn.grid()  # Näytetään "Kirjaudu ulos" -nappi
         else:
             self.user_label.config(text="⚠️ Ei kirjautunut sisään", foreground="red")
             self.disable_task_buttons()
             self.clear_task_list()
-            self.login_btn.grid()  # Näytetään "Kirjaudu sisään" -nappi
-            self.logout_btn.grid_remove()  # Piilotetaan "Kirjaudu ulos" -nappi
 
     def enable_task_buttons(self):
         """Aktivoi tehtävien hallintapainikkeet kirjautumisen jälkeen"""
@@ -91,6 +86,18 @@ class TaskManagerGUI:
         for item in self.tree.get_children():
             self.tree.delete(item)
 
+    def login(self):
+        """Käyttäjä kirjautuu sisään Google-tilillä"""
+        authenticate_google()
+        self.check_login_status()
+        messagebox.showinfo("🔑 Kirjautuminen", "Olet nyt kirjautunut sisään!")
+
+    def logout(self):
+        """Käyttäjä kirjautuu ulos ja poistaa tiedot"""
+        logout_google()
+        self.check_login_status()
+        messagebox.showinfo("🚪 Uloskirjautuminen", "Olet kirjautunut ulos!")
+
     def load_task_data(self):
         """Lataa tehtävät ja näyttää ne käyttöliittymässä"""
         self.clear_task_list()
@@ -98,18 +105,6 @@ class TaskManagerGUI:
 
         for task in tasks:
             self.tree.insert("", "end", values=(task["title"], task["deadline"], task["priority"]))
-
-    def login(self):
-        """Käyttäjä kirjautuu sisään Google-tilillä"""
-        authenticate_google()
-        self.check_login_status()
-        messagebox.showinfo("Kirjautuminen", "Olet nyt kirjautunut sisään!")
-
-    def logout(self):
-        """Käyttäjä kirjautuu ulos ja poistaa tiedot"""
-        logout_google()
-        self.check_login_status()
-        messagebox.showinfo("Uloskirjautuminen", "Olet kirjautunut ulos!")
 
     def add_task(self):
         """Lisää tehtävän"""
@@ -143,6 +138,46 @@ class TaskManagerGUI:
                 messagebox.showerror("⚠️ Virhe", "Täytä kaikki kentät!")
 
         ttk.Button(new_task_window, text="💾 Tallenna", command=save_new_task).grid(row=3, column=1)
+
+    def edit_task(self):
+        """Muokkaa tehtävää"""
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showerror("⚠️ Virhe", "Valitse muokattava tehtävä!")
+            return
+
+        item_values = self.tree.item(selected_item, "values")
+        tasks = load_tasks()
+
+        for task in tasks:
+            if task["title"] == item_values[0]:
+                task["title"] = "MUOKATTU: " + task["title"]
+                save_tasks(tasks)
+                self.load_task_data()
+                messagebox.showinfo("✏️ Muokkaa tehtävää", "Tehtävä päivitetty!")
+                return
+
+    def delete_task(self):
+        """Poistaa tehtävän"""
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showerror("⚠️ Virhe", "Valitse poistettava tehtävä!")
+            return
+
+        item_values = self.tree.item(selected_item, "values")
+        tasks = load_tasks()
+        tasks = [task for task in tasks if task["title"] != item_values[0]]
+        save_tasks(tasks)
+        self.load_task_data()
+        messagebox.showinfo("🗑️ Poistettu", "Tehtävä poistettu onnistuneesti!")
+
+    def sync_google(self):
+        """Synkronoi tehtävät Google Kalenteriin"""
+        if os.path.exists("token.json"):
+            sync_tasks_to_calendar()
+            messagebox.showinfo("✅ Synkronointi", "Tehtävät synkronoitu Google Kalenteriin!")
+        else:
+            messagebox.showerror("⚠️ Virhe", "Sinun täytyy kirjautua sisään ennen synkronointia!")
 
 if __name__ == "__main__":
     root = tk.Tk()
