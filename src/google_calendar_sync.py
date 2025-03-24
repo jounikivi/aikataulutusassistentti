@@ -1,54 +1,47 @@
+import datetime
 import json
-import numpy as np
-import pandas as pd
-from datetime import datetime, timedelta
-from sklearn.linear_model import LinearRegression
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from task_manager import load_tasks
 
-TASKS_FILE = "tasks.json"
+def get_calendar_service():
+    """Palauttaa valmiin Google Calendar API -palvelun, käyttäen token.json -tiedostoa"""
+    creds = Credentials.from_authorized_user_file("token.json", ["https://www.googleapis.com/auth/calendar"])
+    return build("calendar", "v3", credentials=creds)
 
-def load_tasks():
-    """Lataa tehtävät tiedostosta"""
+def sync_tasks_to_calendar():
+    """
+    Synkronoi kaikki tehtävät Google Kalenteriin.
+    Jokaisesta tehtävästä lisätään kalenteritapahtuma annetun deadlinen mukaisesti.
+    """
     try:
-        with open(TASKS_FILE, "r", encoding="utf-8") as file:
-            return json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
+        service = get_calendar_service()
+        tasks = load_tasks()
 
-def train_model(tasks):
-    """Kouluttaa koneoppimismallin käyttäjän aikataulutottumuksista"""
-    data = []
-    
-    for task in tasks:
-        if "completed_time" in task:  # Käytetään vain suoritettuja tehtäviä
-            dt = datetime.strptime(task["completed_time"], "%Y-%m-%d %H:%M")
-            data.append([dt.hour, dt.minute])
-    
-    if len(data) < 3:  # Tarvitaan vähintään 3 datapistettä, jotta malli voidaan kouluttaa
-        return None
+        for task in tasks:
+            try:
+                # Muunnetaan deadline datetime-muotoon
+                start_time = datetime.datetime.strptime(task["deadline"], "%Y-%m-%d %H:%M")
+                end_time = start_time + datetime.timedelta(minutes=30)  # Oletuskesto 30 min
 
-    df = pd.DataFrame(data, columns=["hour", "minute"])
-    model = LinearRegression()
-    model.fit(df[["hour"]], df["minute"])  # Opetetaan malli ennustamaan minuutit kellonajasta
-    return model
+                event = {
+                    "summary": task["title"],
+                    "description": f"Tärkeysaste: {task['priority']}",
+                    "start": {
+                        "dateTime": start_time.isoformat(),
+                        "timeZone": "Europe/Helsinki"
+                    },
+                    "end": {
+                        "dateTime": end_time.isoformat(),
+                        "timeZone": "Europe/Helsinki"
+                    }
+                }
 
-def suggest_schedule():
-    """Suosittelee parasta aikaa uudelle tehtävälle käyttäjän datan perusteella"""
-    tasks = load_tasks()
-    model = train_model(tasks)
+                service.events().insert(calendarId="primary", body=event).execute()
+                print(f"✅ Tapahtuma lisätty Google Kalenteriin: {task['title']}")
 
-    if model is None:
-        return "12:00"  # Oletusaika, jos dataa ei ole tarpeeksi
+            except Exception as e:
+                print(f"⚠️ Virhe lisättäessä tehtävää '{task['title']}': {e}")
 
-    predicted_hour = int(model.predict(np.array([[12]]))[0])  # Ennustetaan klo 12 perustuen dataan
-    return f"{predicted_hour:02d}:00"  # Varmistetaan oikea formaatti HH:MM
-
-def suggest_reminder():
-    """Suosittelee muistutusaikaa perustuen käyttäjän tehtäväkäyttäytymiseen"""
-    tasks = load_tasks()
-    model = train_model(tasks)
-
-    if model is None:
-        return 30  # Oletusmuistutus: 30 minuuttia ennen
-
-    predicted_minute = int(model.predict(np.array([[12]]))[0])  # Ennustetaan minuuttimäärä klo 12
-    return max(5, min(60, predicted_minute))  # Varmistetaan, että muistutus on 5–60 minuuttia ennen
+    except Exception as e:
+        print(f"❌ Virhe kalenteriyhteydessä: {e}")
