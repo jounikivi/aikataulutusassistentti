@@ -1,28 +1,22 @@
 import datetime
-import json
-from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from google_auth import get_credentials
 from task_manager import load_tasks
-
-def get_calendar_service():
-    """Palauttaa valmiin Google Calendar API -palvelun, käyttäen token.json -tiedostoa"""
-    creds = Credentials.from_authorized_user_file("token.json", ["https://www.googleapis.com/auth/calendar"])
-    return build("calendar", "v3", credentials=creds)
 
 def sync_tasks_to_calendar():
     """
-    Synkronoi kaikki tehtävät Google Kalenteriin.
-    Jokaisesta tehtävästä lisätään kalenteritapahtuma annetun deadlinen mukaisesti.
+    Synkronoi tehtävät Google Kalenteriin.
+    Käyttää kirjautunutta käyttäjää ja lisää tapahtumat Kalenteriin.
     """
     try:
-        service = get_calendar_service()
+        creds = get_credentials()
+        service = build("calendar", "v3", credentials=creds)
         tasks = load_tasks()
 
         for task in tasks:
             try:
-                # Muunnetaan deadline datetime-muotoon
                 start_time = datetime.datetime.strptime(task["deadline"], "%Y-%m-%d %H:%M")
-                end_time = start_time + datetime.timedelta(minutes=30)  # Oletuskesto 30 min
+                end_time = start_time + datetime.timedelta(minutes=30)  # oletuskesto
 
                 event = {
                     "summary": task["title"],
@@ -38,7 +32,7 @@ def sync_tasks_to_calendar():
                 }
 
                 service.events().insert(calendarId="primary", body=event).execute()
-                print(f"✅ Tapahtuma lisätty Google Kalenteriin: {task['title']}")
+                print(f"✅ Tapahtuma lisätty: {task['title']}")
 
             except Exception as e:
                 print(f"⚠️ Virhe lisättäessä tehtävää '{task['title']}': {e}")

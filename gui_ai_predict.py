@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import os
 from google_calendar_sync import sync_tasks_to_calendar
-from google_auth import get_credentials
+from google_auth import authenticate_google, logout_google
 from task_manager import load_tasks, save_tasks
 from smart_scheduler_ml import predict_schedule
 
@@ -77,15 +77,12 @@ class TaskManagerGUI:
             self.tree.delete(item)
 
     def login(self):
-        """Kirjautuminen Google-tilillä"""
-        get_credentials()
+        authenticate_google()
         self.check_login_status()
         messagebox.showinfo("Kirjautuminen", "Olet nyt kirjautunut sisään!")
 
     def logout(self):
-        """Uloskirjautuminen (poistaa tokenin)"""
-        if os.path.exists("token.json"):
-            os.remove("token.json")
+        logout_google()
         self.check_login_status()
         messagebox.showinfo("Uloskirjautuminen", "Olet kirjautunut ulos!")
 
