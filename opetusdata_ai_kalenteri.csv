@@ -1,0 +1,11 @@
+task_name,task_type,difficulty,priority,deadline_days,start_hour,day_of_week,estimated_by_user,duration_minutes
+Tenttiin lukeminen,opiskelu,3,4,2,10,1,60,55
+Ohjelmointitehtävä,opiskelu,4,5,1,14,2,90,95
+Palaveri,työ,2,3,0,9,2,30,25
+Esitelmän teko,opiskelu,3,4,3,11,3,75,70
+Harjoitustyö,opiskelu,5,5,1,13,4,120,130
+Ryhmätyö,opiskelu,3,4,2,10,3,80,75
+Koodin testaus,opiskelu,4,4,1,15,1,60,58
+Raportin kirjoitus,opiskelu,3,3,4,12,5,90,100
+Projektisuunnittelu,työ,2,3,0,9,0,45,50
+Tietokantaharjoitus,opiskelu,4,5,1,14,2,75,80
