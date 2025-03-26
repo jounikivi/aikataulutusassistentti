@@ -1,96 +1,77 @@
-### **📌 Päivitetty `README.md`**  
-✅ **Parannettu versio, joka sisältää selkeämmät ohjeet ja lisätietoja.**  
+# 🧠 Älykäs Aikataulutusassistentti
 
-📌 **Tallenna tämä `README.md`-tiedostoksi projektisi juurikansioon (`C:\aikataulutusassistentti\README.md`).**  
+Älykäs Aikataulutusassistentti on Pythonilla toteutettu graafinen sovellus, joka auttaa käyttäjiä hallitsemaan tehtäviään tehokkaammin. Sovellus hyödyntää koneoppimista tehtävien keston ennustamiseen ja synkronoi tehtävät automaattisesti Google Kalenteriin.
 
----
+## 🚀 Ominaisuudet
 
-### **📅 Älykäs Aikataulutusassistentti**
-**Graafinen tehtävienhallintasovellus, joka hyödyntää tekoälyä ja Google Kalenteria tehtävien optimointiin.**  
-Tehtävien aikataulutusta ja muistutuksia optimoidaan koneoppimisen avulla, ja kaikki synkronoidaan Google Kalenteriin.
+- 🧩 Ennustaa tehtävien keston Random Forest -mallilla
+- 📅 Integroituu Google Kalenteriin (OAuth 2.0)
+- ✅ Tunnistaa parhaan ajankohdan tehtävälle tekoälyn avulla
+- 🖥️ Käyttäjäystävällinen graafinen käyttöliittymä (Tkinter)
+- 📊 Tuki laajennettavalle opetusdatalle (.csv)
 
----
+## 📸 Kuvakaappauksia
 
-## 🔹 **Ominaisuudet**
-✅ **Tehtävien hallinta (lisää, muokkaa, poista)**  
-✅ **Tekoäly arvioi parhaan ajankohdan tehtävälle**  
-✅ **Google Kalenteriin synkronointi**  
-✅ **Muistutukset perustuvat käyttäjän aiempaan toimintaan**  
-✅ **Graafinen käyttöliittymä (Tkinter)**  
+### Sovelluksen käyttöliittymä
+![UI](./screenshots/käyttöliittymä.png)
 
----
+### AI-ennuste
+![Ennuste](./screenshots/ennusteen_näkymä.png)
 
-## 🔹 **1️⃣ Asennusohjeet**
-### **1.1. Lataa projektin tiedostot**
-📌 **Jos käytät GitHubia, lataa tiedostot näin:**  
-```bash
-git clone https://github.com/KÄYTTÄJÄNIMI/aikataulutusassistentti.git
-cd aikataulutusassistentti
+### Google Kalenteri -integraatio
+![Kalenteri](./screenshots/näkymäkalenteriis.png)
+
+## 🧪 Opetusdatan rakenne (CSV)
+
+| task_name          | task_type | difficulty | priority | deadline_days | start_hour | day_of_week | estimated_by_user | duration_minutes |
+|--------------------|-----------|------------|----------|----------------|-------------|--------------|-------------------|------------------|
+| Tenttiin lukeminen | opiskelu  | 3          | 4        | 2              | 10          | 1            | 60                | 55               |
+
+## 🛠️ Teknologiat
+
+- Python 3.10+
+- Pandas
+- Scikit-learn
+- Tkinter
+- Google API Python Client
+- Pickle
+
+## ⚙️ Asennus
+
+1. Asenna riippuvuudet:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Lisää Google API -tunnistetiedosto `credentials.json` juurikansioon.
+
+3. Kouluta malli:
+   ```bash
+   python train_model.py
+   ```
+
+4. Käynnistä sovellus:
+   ```bash
+   python gui_ai_predict.py
+   ```
+
+## 📁 Projektin rakenne
+
 ```
-📌 **Jos kopioit tiedostot manuaalisesti, siirry projektikansioon:**  
-```bash
-cd C:\aikataulutusassistentti
-```
-
----
-
-### **1.2. Asenna tarvittavat riippuvuudet**
-📌 **Asenna kaikki paketit `requirements.txt`-tiedostosta:**  
-```bash
-pip install -r requirements.txt
-```
-
-📌 **Jos `requirements.txt` puuttuu, voit asentaa tärkeimmät paketit manuaalisesti näin:**  
-```bash
-pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client pandas
-```
-
----
-
-### **1.3. Käynnistä sovellus**
-📌 **Avaa käyttöliittymä (GUI) suorittamalla:**  
-```bash
-python src/gui.py
-python src/gui_ai_predict.py   
-```
-
----
-
-## 🔹 **2️⃣ Sovelluksen käyttö**
-1️⃣ **Kirjaudu sisään Google-tililläsi**  
-2️⃣ **Lisää tehtävä** (Anna tehtävän nimi, deadline ja tärkeys)  
-3️⃣ **Muokkaa tai poista tehtäviä tarpeen mukaan**  
-4️⃣ **Synkronoi tehtävät Google Kalenteriin**  
-5️⃣ **Tekoäly ehdottaa sinulle optimaalisen ajankohdan tehtävän suorittamiseen**  
-
----
-
-## 🔹 **3️⃣ Vaaditut teknologiat ja kirjastot**
-✅ **Python 3.10+** – Ohjelmointikieli  
-✅ `tkinter` – Graafinen käyttöliittymä  
-✅ `google-auth`, `google-auth-oauthlib`, `google-auth-httplib2` – Google API -kirjastot  
-✅ `google-api-python-client` – Google Kalenterin hallinta  
-✅ `pandas` – Tietojenkäsittely ja analytiikka  
-✅ `datetime` – Aikataulujen hallinta  
-
----
-
-## 🛠 **4️⃣ Vianetsintä**
-### **"ModuleNotFoundError: No module named 'google.oauth2'"**
-✅ Asenna puuttuvat paketit komennolla:  
-```bash
-pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+├── gui_ai_predict.py
+├── train_model.py
+├── model.pkl
+├── opetusdata_ai_kalenteri.csv
+├── google_auth.py
+├── credentials.json
+└── README.md
 ```
 
-### **"Google API -autentikointi epäonnistui"**
-✅ Varmista, että **`token.json`** on olemassa ja päivitä tunnukset uudelleen käynnistämällä sovellus.
+## 📚 Lisenssi
+
+Tämä projekti on tarkoitettu opetuskäyttöön ja on vapaasti muokattavissa.
 
 ---
 
-## 📌 **5️⃣ Jatkokehitys**
-💡 **Seuraavat lisäominaisuudet:**  
-- **Tietokantapohjainen tehtävien tallennus (SQLite/PostgreSQL)**  
-- **Graafinen analytiikka tehtävien suorittamisesta (matplotlib)**  
-- **Tehtävien jako ja yhteistyömahdollisuudet**  
-- **Parempi tekoäly ennustamaan käyttäjän ajankäyttöä**  
-
+Kehittänyt Jouni Kiviperä – 2025  
+[Tekoälyn soveltaminen -kurssi]
