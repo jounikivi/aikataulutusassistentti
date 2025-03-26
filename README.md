@@ -51,6 +51,7 @@ pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-pyt
 📌 **Avaa käyttöliittymä (GUI) suorittamalla:**  
 ```bash
 python src/gui.py
+python src/gui_ai_predict.py   
 ```
 
 ---
