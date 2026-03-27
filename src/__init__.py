@@ -1,0 +1,1 @@
+"""Älykkään aikataulutusassistentin kanoninen sovelluspaketti."""

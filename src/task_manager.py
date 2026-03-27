@@ -1,41 +1,87 @@
+from __future__ import annotations
+
 import json
-import os
+from pathlib import Path
 
-TASK_FILE = "tasks.json"
+try:
+    from .google_auth import get_current_user_email
+    from .task_utils import normalize_task
+except ImportError:
+    from google_auth import get_current_user_email
+    from task_utils import normalize_task
 
-def get_user_email():
-    """
-    Palauttaa kirjautuneen käyttäjän sähköpostin token.json-tiedostosta.
-    Jos käyttäjä ei ole kirjautunut, palautetaan oletusnimi.
-    """
+LEGACY_TASK_FILE = Path("tasks.json")
+DEFAULT_TASK_FILE = Path("tasks_default_user.json")
+
+
+def _sanitize_email(email: str) -> str:
+    return email.replace("@", "_").replace(".", "_")
+
+
+def get_user_task_file(email: str | None = None) -> Path:
+    active_email = (email or get_current_user_email()).strip() or "default_user"
+    return Path(f"tasks_{_sanitize_email(active_email)}.json")
+
+
+def _find_existing_task_file(target_file: Path) -> Path:
+    if target_file.exists():
+        return target_file
+
+    candidates: list[Path] = []
+    if target_file.name != DEFAULT_TASK_FILE.name:
+        candidates.extend([DEFAULT_TASK_FILE, LEGACY_TASK_FILE])
+    else:
+        candidates.append(LEGACY_TASK_FILE)
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    return target_file
+
+
+def _load_normalized_tasks(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+
     try:
-        with open("token.json", "r") as token_file:
-            token_data = json.load(token_file)
-            return token_data.get("email", "default_user")
-    except Exception:
-        return "default_user"
+        with path.open("r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (OSError, json.JSONDecodeError):
+        return []
 
-def get_user_task_file():
-    """
-    Palauttaa käyttäjäkohtaisen tehtävätiedoston nimen.
-    """
-    email = get_user_email().replace("@", "_").replace(".", "_")
-    return f"tasks_{email}.json"
+    if not isinstance(data, list):
+        return []
 
-def load_tasks():
-    """
-    Lataa tehtävät käyttäjäkohtaisesta tiedostosta.
-    """
-    file_path = get_user_task_file()
-    if os.path.exists(file_path):
-        with open(file_path, "r") as file:
-            return json.load(file)
-    return []
+    tasks = []
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        try:
+            tasks.append(normalize_task(item))
+        except (TypeError, ValueError):
+            continue
+    return tasks
 
-def save_tasks(tasks):
-    """
-    Tallentaa annetut tehtävät käyttäjäkohtaisesti.
-    """
-    file_path = get_user_task_file()
-    with open(file_path, "w") as file:
-        json.dump(tasks, file, indent=2)
+
+def load_tasks() -> list[dict]:
+    target_file = get_user_task_file()
+    source_file = _find_existing_task_file(target_file)
+    tasks = _load_normalized_tasks(source_file)
+
+    if tasks and source_file != target_file:
+        save_tasks(tasks)
+
+    return tasks
+
+
+def save_tasks(tasks: list[dict]) -> None:
+    normalized_tasks = []
+    for task in tasks:
+        if not isinstance(task, dict):
+            continue
+        normalized_tasks.append(normalize_task(task))
+
+    target_file = get_user_task_file()
+    with target_file.open("w", encoding="utf-8") as handle:
+        json.dump(normalized_tasks, handle, ensure_ascii=False, indent=2)

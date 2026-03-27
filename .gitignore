@@ -1,4 +1,11 @@
 # Suojaa API-avaimet ja muut arkaluontoiset tiedostot
 .env
 client_secret.json
+credentials.json
 token.json
+session.json
+
+# Paikalliset käyttäjädata- ja välimuistitiedostot
+tasks_*.json
+__pycache__/
+*.pyc
